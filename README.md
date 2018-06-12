@@ -17,4 +17,4 @@ composer require pushkar/simple-mailer
 
 ## License
 
-Copyright (c) 2017 [10Quality](http://www.10quality.com/). Under MIT License.
+Copyright (c) 2018 [Pushkar Anand](https://pushkaranand.me/). Under MIT License.
