@@ -20,8 +20,7 @@ class MailTest extends TestCase
 
     public function testEmailSend()
     {
-        try
-        {
+        try {
             $mail = new \EasyMail\Mail($this->test_mail);
             $mail->setSubject("Test Subject");
             $mail->addCC("hey@mail.com");
@@ -30,8 +29,7 @@ class MailTest extends TestCase
 
             $this->assertTrue($mail->sendMail());
             unset($mail);
-        } catch (Exception $e)
-        {
+        } catch (Exception $e) {
 
         }
     }
@@ -41,10 +39,8 @@ class MailTest extends TestCase
     {
         try {
             $mail = new \EasyMail\Mail("abc");
-        }
-        catch (Exception $e)
-        {
-            $this->assertTrue($e->getMessage()=="Invalid Email.");
+        } catch (Exception $e) {
+            $this->assertTrue($e->getMessage() == "Invalid Email.");
         }
     }
 

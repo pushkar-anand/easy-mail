@@ -48,11 +48,6 @@ class Mail
         }
     }
 
-    public function setSubject(string $subject)
-    {
-        $this->subject = $subject;
-    }
-
     /**
      * Checks whether an email is valid or not
      * Return true if valid, false otherwise
@@ -62,6 +57,11 @@ class Mail
     private function isValidEmail(string $email): bool
     {
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    public function setSubject(string $subject)
+    {
+        $this->subject = $subject;
     }
 
     /**
