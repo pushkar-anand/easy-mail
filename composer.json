@@ -1,0 +1,28 @@
+{
+  "name": "easy-mail",
+  "description": "A wrapper for php's mail function that allows you to easily construct and send mails.",
+  "license": "MIT",
+  "homepage": "https://github.com/",
+  "keywords": [
+    "mailer",
+    "simple", "easy"
+  ],
+  "type": "library",
+  "authors": [
+    {
+      "name": "Pushkar Anand",
+      "email": "anandpushkar088@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "EasyMail\\": "src"
+    }
+  },
+  "require": {
+    "php": ">=7"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7"
+  }
+}
