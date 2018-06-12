@@ -1,5 +1,5 @@
 {
-  "name": "easy-mail",
+  "name": "pushkar/easy-mail",
   "description": "A wrapper for php's mail function that allows you to easily construct and send mails.",
   "license": "MIT",
   "homepage": "https://github.com/",
