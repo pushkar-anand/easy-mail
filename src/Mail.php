@@ -59,6 +59,9 @@ class Mail
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 
+    /**
+     * @param string $subject
+     */
     public function setSubject(string $subject)
     {
         $this->subject = $subject;
@@ -156,9 +159,11 @@ class Mail
     }
 
     /**
-     *
+     *Final call to send the  mail
+     * returns true on successful call, false otherwise.
+     * @return bool
      */
-    public function sendMail()
+    public function sendMail(): bool
     {
         if (!($this->customHeaders)) {
             $this->headers .= "X-Mail: SimpleMailer" . "\r\n";

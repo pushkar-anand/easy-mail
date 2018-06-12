@@ -1,5 +1,6 @@
 <?php
 
+use EasyMail\Mail;
 use PHPUnit\Framework\TestCase;
 
 
@@ -21,7 +22,7 @@ class MailTest extends TestCase
     public function testEmailSend()
     {
         try {
-            $mail = new \EasyMail\Mail($this->test_mail);
+            $mail = new Mail($this->test_mail);
             $mail->setSubject("Test Subject");
             $mail->addCC("hey@mail.com");
             $mail->isHtml(false);
