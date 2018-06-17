@@ -237,7 +237,7 @@ class Mail
                 if ($this->isHtml) {
                     $body = "--" . $separator . $eol;
                     $body .= "Content-Type: text/html;charset=$this->encoding" . $eol;
-                    $body .= "Content-Transfer-Encoding: 7bit" . $eol;
+                    $body .= "Content-Transfer-Encoding: 8bit" . $eol;
                     $body .= $this->msg . $eol;
 
                 } else {
