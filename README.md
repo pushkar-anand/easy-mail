@@ -1,4 +1,4 @@
-# PHP Emoji
+# easy-mail
 
 A wrapper for php's mail function that allows you to easily construct and send mails.
 
