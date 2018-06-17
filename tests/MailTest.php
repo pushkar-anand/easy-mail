@@ -35,6 +35,23 @@ class MailTest extends TestCase
         }
     }
 
+    public function testFileNotFoundException()
+    {
+        $this->expectOutputString("File does'nt exists");
+
+        try {
+            $mail = new Mail($this->test_mail);
+            $mail->setSubject("Test Subject");
+            $mail->addCC("hey@mail.com");
+            $mail->isHtml(false);
+            $mail->addReplyTo("no-reply@mail.com", "no-reply");
+            $mail->addAttachment("/invalid/file.ext");
+            $mail->sendMail();
+            unset($mail);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
+    }
 
     public function testIfEmailExceptionIsThrown()
     {

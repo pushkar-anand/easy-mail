@@ -16,13 +16,18 @@ class Mail
     private $subject;
     private $msg;
     private $headers;
-
-    private $isHtml;
+    private $attachment;
     private $customHeaders;
+    private $reply_to;
+    private $encoding = "UTF-8";
+
+    private $isHtml = false;
+    private $hasAttachment = false;
+
 
     private $bcc = array();
     private $cc = array();
-    private $reply_to;
+
 
     /**
      * SimplerMailer constructor.
@@ -158,42 +163,102 @@ class Mail
 
     }
 
+    public function setEncoding(string $encoding)
+    {
+        $this->encoding = $encoding;
+    }
+
+    /**
+     * @param string $file_full_path
+     * @throws Exception
+     */
+    public function addAttachment(string $file_full_path)
+    {
+        if (file_exists($file_full_path)) {
+            $this->hasAttachment = true;
+            $this->attachment = $file_full_path;
+        } else {
+            throw new Exception("File does'nt exists");
+        }
+    }
+
     /**
      *Final call to send the  mail
      * returns true on successful call, false otherwise.
      * @return bool
+     * @throws Exception
      */
     public function sendMail(): bool
     {
+        $eol = "\r\n";
+        $separator = md5(time());
+        $body = wordwrap($this->msg);
+
         if (!($this->customHeaders)) {
-            $this->headers .= "X-Mail: SimpleMailer" . "\r\n";
+            $this->headers .= "X-Mail: EasyMail" . $eol;
 
             if (!empty($this->cc)) {
                 foreach ($this->cc as $email) {
-                    $this->headers .= "Cc: $email" . "\r\n";
+                    $this->headers .= "Cc: $email" . $eol;
                 }
             }
 
             if (!empty($this->bcc)) {
                 foreach ($this->bcc as $email) {
-                    $this->headers .= "Bcc: $email" . "\r\n";
+                    $this->headers .= "Bcc: $email" . $eol;
                 }
-            }
-            if ($this->isHtml) {
-                $this->headers .= "'MIME-Version: 1.0" . "\r\n";
-                $this->headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
             }
 
             if ($this->from != null) {
-                $this->headers .= "From: $this->from";
+                $this->headers .= "From: $this->from" . $eol;
             }
 
             if ($this->reply_to != null) {
-                $this->headers .= "Reply-To: $this->reply_to";
+                $this->headers .= "Reply-To: $this->reply_to" . $eol;
+            }
+
+            $content = null;
+
+            if ($this->hasAttachment) {
+                if (!file_exists($this->attachment)) {
+                    throw new Exception("File does'nt exists");
+                }
+                $content = file_get_contents($this->attachment);
+                $content = chunk_split(base64_encode($content));
+
+
+                $filename = pathinfo($this->attachment, PATHINFO_BASENAME);;
+
+                $this->headers .= "MIME-Version: 1.0" . $eol;
+                $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
+                $this->headers .= "Content-Transfer-Encoding: 7bit" . $eol;
+                $this->headers .= "This is a MIME encoded message." . $eol;
+
+                //for message
+                if ($this->isHtml) {
+                    $body = "--" . $separator . $eol;
+                    $body .= "Content-Type: text/html; charset=$this->encoding" . $eol;
+                    $body .= "Content-Transfer-Encoding: 8bit" . $eol;
+                    $body .= $this->msg . $eol;
+
+                } else {
+                    $body = "--" . $separator . $eol;
+                    $body .= "Content-Type: text/plain; charset=$this->encoding" . $eol;
+                    $body .= "Content-Transfer-Encoding: 8bit" . $eol;
+                    $body .= $this->msg . $eol;
+                }
+
+                //for attachment
+                $body .= "--" . $separator . $eol;
+                $body .= "Content-Type: application/octet-stream; name=\"" . $filename . "\"" . $eol;
+                $body .= "Content-Transfer-Encoding: base64" . $eol;
+                $body .= "Content-Disposition: attachment" . $eol;
+                $body .= $content . $eol;
+                $body .= "--" . $separator . "--";
             }
         }
 
-        return mail($this->send_to, $this->subject, $this->msg, $this->headers);
+        return mail($this->send_to, $this->subject, $body, $this->headers);
     }
 
 }
