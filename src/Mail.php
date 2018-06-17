@@ -106,7 +106,9 @@ class Mail
     public function addBcc(string $email)
     {
         if ($this->isValidEmail($email)) {
-            array_push($this->bcc, $email);
+            if (!in_array($email, $this->bcc)) {
+                array_push($this->bcc, $email);
+            }
         } else {
             throw new Exception("Invalid Email.");
         }
@@ -119,7 +121,9 @@ class Mail
     public function addCC(string $email)
     {
         if ($this->isValidEmail($email)) {
-            array_push($this->cc, $email);
+            if (!in_array($email, $this->cc)) {
+                array_push($this->cc, $email);
+            }
         } else {
             throw new Exception("Invalid Email.");
         }
@@ -198,6 +202,30 @@ class Mail
 
             $content = null;
 
+
+            if ($this->from != null) {
+                $this->headers .= "From: $this->from" . $eol;
+            }
+
+            if ($this->reply_to != null) {
+                $this->headers .= "Reply-To: $this->reply_to" . $eol;
+            }
+
+            if (!empty($this->cc)) {
+                foreach ($this->cc as $email) {
+                    $this->headers .= "Cc: $email" . $eol;
+                }
+            }
+
+            if (!empty($this->bcc)) {
+                foreach ($this->bcc as $email) {
+                    $this->headers .= "Bcc: $email" . $eol;
+                }
+            }
+
+            $this->headers .= "X-Mailer: EasyMail-Composer-Lib" . $eol;
+
+
             if ($this->hasAttachment) {
                 if (!file_exists($this->attachment)) {
                     throw new Exception("File does'nt exists");
@@ -240,27 +268,6 @@ class Mail
                 $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
             }
 
-            if (!empty($this->cc)) {
-                foreach ($this->cc as $email) {
-                    $this->headers .= "Cc: $email" . $eol;
-                }
-            }
-
-            if (!empty($this->bcc)) {
-                foreach ($this->bcc as $email) {
-                    $this->headers .= "Bcc: $email" . $eol;
-                }
-            }
-
-            if ($this->from != null) {
-                $this->headers .= "From: $this->from" . $eol;
-            }
-
-            if ($this->reply_to != null) {
-                $this->headers .= "Reply-To: $this->reply_to" . $eol;
-            }
-
-            $this->headers .= "X-Mail: EasyMail" . $eol;
         }
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
