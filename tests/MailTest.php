@@ -62,4 +62,24 @@ class MailTest extends TestCase
         }
     }
 
+    public function testAttachedEmail()
+    {
+        try {
+            $mail = new Mail("anandpushkar088@email.com");
+            $mail->setSubject("PHP Unit test Mail");
+            $mail->isHtml(true);
+            $mail->setMsg("<html><head></head><body>HTML email with attachment.</body></html>");
+
+            $file = fopen("test.txt", "w");
+            fwrite($file, "Hii this is the attachment.");
+            fclose($file);
+
+            $mail->addAttachment(__DIR__ . "/test.txt");
+            $this->assertTrue($mail->sendMail());
+            unlink("test.txt");
+        } catch (Exception $exception) {
+            echo $exception->getMessage();
+        }
+    }
+
 }

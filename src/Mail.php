@@ -237,7 +237,8 @@ class Mail
                 if ($this->isHtml) {
                     $body = "--" . $separator . $eol;
                     $body .= "Content-Type: text/html; charset=$this->encoding" . $eol;
-                    $body .= $this->msg . $eol;
+                    $body .= "Content-Transfer-Encoding: base64" . $eol;
+                    $body .= chunk_split(base64_encode($this->msg)) . $eol;
 
                 } else {
                     $body = "--" . $separator . $eol;
