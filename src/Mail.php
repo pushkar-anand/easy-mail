@@ -255,6 +255,11 @@ class Mail
                 $body .= $content . $eol;
                 $body .= "--" . $separator . "--";
             }
+
+            if (!$this->hasAttachment && $this->isHtml) {
+                $this->headers .= "MIME-Version: 1.0" . $eol;
+                $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
+            }
         }
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
