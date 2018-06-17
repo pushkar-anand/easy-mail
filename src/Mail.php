@@ -19,7 +19,7 @@ class Mail
     private $attachment;
     private $customHeaders;
     private $reply_to;
-    private $encoding = "UTF-8";
+    private $encoding = "iso-8859-1";
 
     private $isHtml = false;
     private $hasAttachment = false;
