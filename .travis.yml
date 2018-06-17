@@ -10,4 +10,7 @@ php:
 script: ./vendor/bin/phpunit
 
 before_script:
+    - pwd
+    - php -v
     - composer install --no-interaction --prefer-source
+    - touch test.txt

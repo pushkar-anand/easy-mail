@@ -11,15 +11,16 @@ use Exception;
  */
 class Mail
 {
-    private $from;
+    private $from = null;
     private $send_to;
     private $subject;
     private $msg;
     private $headers;
     private $attachment;
-    private $customHeaders;
-    private $reply_to;
+    private $reply_to = null;
     private $encoding = "iso-8859-1";
+    private $priority = 3;
+
 
     private $isHtml = false;
     private $hasAttachment = false;
@@ -43,10 +44,7 @@ class Mail
             $this->subject = $subject;
             $this->msg = $msg;
 
-            $this->from = null;
             $this->headers = "";
-            $this->reply_to = null;
-            $this->customHeaders = false;
         } else {
 
             throw new Exception("Invalid Email.");
@@ -91,12 +89,11 @@ class Mail
 
     /**
      * Define your own mail headers
-     * @param string $headers
+     * @param string $header
      */
-    public function customHeaders(string $headers)
+    public function customHeader(string $header)
     {
-        $this->customHeaders = true;
-        $this->headers = $headers;
+        $this->headers .= $header;
     }
 
     /**
@@ -127,6 +124,14 @@ class Mail
         } else {
             throw new Exception("Invalid Email.");
         }
+    }
+
+    /**
+     * @param int $priority
+     */
+    public function setPriority(int $priority)
+    {
+        $this->priority = $priority;
     }
 
     /**
@@ -194,81 +199,83 @@ class Mail
      */
     public function sendMail(): bool
     {
+        if ($this->send_to == null || $this->msg == null) {
+            throw new Exception("Required Parameter missing. Please see if you are missing body or receiver's address.");
+        }
         $eol = "\r\n";
-        $separator = "BOUNDARY" . md5(time()) . "";
         $body = $this->msg;
 
-        if (!($this->customHeaders)) {
+        $content = null;
+        $separator = "BOUNDARY" . md5(time()) . "";
 
-            $content = null;
-
-
-            if ($this->from != null) {
-                $this->headers .= "From: $this->from" . $eol;
-            }
-
-            if ($this->reply_to != null) {
-                $this->headers .= "Reply-To: $this->reply_to" . $eol;
-            }
-
-            if (!empty($this->cc)) {
-                foreach ($this->cc as $email) {
-                    $this->headers .= "Cc: $email" . $eol;
-                }
-            }
-
-            if (!empty($this->bcc)) {
-                foreach ($this->bcc as $email) {
-                    $this->headers .= "Bcc: $email" . $eol;
-                }
-            }
-
-            $this->headers .= "X-Mailer: EasyMail-Composer-Lib" . $eol;
-
-
-            if ($this->hasAttachment) {
-                if (!file_exists($this->attachment)) {
-                    throw new Exception("File does'nt exists");
-                }
-                $content = file_get_contents($this->attachment);
-                $content = chunk_split(base64_encode($content));
-
-
-                $filename = pathinfo($this->attachment, PATHINFO_BASENAME);
-
-                $this->headers .= "MIME-Version: 1.0" . $eol;
-                $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
-                $this->headers .= "This is a MIME encoded message." . $eol;
-
-                //for message
-                if ($this->isHtml) {
-                    $body = "--" . $separator . $eol;
-                    $body .= "Content-Type: text/html;charset=$this->encoding" . $eol;
-                    $body .= "Content-Transfer-Encoding: base64" . $eol;
-                    $body .= chunk_split(base64_encode($this->msg)) . $eol;
-
-                } else {
-                    $body = "--" . $separator . $eol;
-                    $body .= "Content-Type: text/plain;charset=$this->encoding" . $eol;
-                    $body .= "Content-Transfer-Encoding: base64" . $eol;
-                    $body .= chunk_split(base64_encode($this->msg)) . $eol;
-                }
-
-                //for attachment
-                $body .= "--" . $separator . $eol;
-                $body .= "Content-Type: application/octet-stream; name=\"" . $filename . "\"" . $eol;
-                $body .= "Content-Transfer-Encoding: base64" . $eol;
-                $body .= "Content-Disposition: attachment" . $eol;
-                $body .= $content . $eol;
-                $body .= "--" . $separator . "--";
-            }
-
-            if (!$this->hasAttachment && $this->isHtml) {
-                $this->headers .= "MIME-Version: 1.0" . $eol;
-                $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
-            }
-
+        if ($this->from != null) {
+            $this->headers .= "From: $this->from" . $eol;
         }
+
+        if ($this->reply_to != null) {
+            $this->headers .= "Reply-To: $this->reply_to" . $eol;
+        }
+
+        if (!empty($this->cc)) {
+            foreach ($this->cc as $email) {
+                $this->headers .= "Cc: $email" . $eol;
+            }
+        }
+
+        if (!empty($this->bcc)) {
+            foreach ($this->bcc as $email) {
+                $this->headers .= "Bcc: $email" . $eol;
+            }
+        }
+
+        if ($this->hasAttachment) {
+            if (!file_exists($this->attachment)) {
+                throw new Exception("File does'nt exists");
+            }
+            $content = file_get_contents($this->attachment);
+            $content = chunk_split(base64_encode($content));
+
+
+            $filename = pathinfo($this->attachment, PATHINFO_BASENAME);
+
+            $this->headers .= "MIME-Version: 1.0" . $eol;
+            $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
+            $this->headers .= "This is a MIME encoded message." . $eol;
+
+            //for message
+            if ($this->isHtml) {
+                $body = "--" . $separator . $eol;
+                $body .= "Content-Type: text/html;charset=$this->encoding" . $eol;
+                $body .= "Content-Transfer-Encoding: base64" . $eol;
+                $body .= chunk_split(base64_encode($this->msg)) . $eol;
+
+            } else {
+                $body = "--" . $separator . $eol;
+                $body .= "Content-Type: text/plain;charset=$this->encoding" . $eol;
+                $body .= "Content-Transfer-Encoding: base64" . $eol;
+                $body .= chunk_split(base64_encode($this->msg)) . $eol;
+            }
+
+            //for attachment
+            $body .= "--" . $separator . $eol;
+            $body .= "Content-Type: application/octet-stream; name=\"" . $filename . "\"" . $eol;
+            $body .= "Content-Transfer-Encoding: base64" . $eol;
+            $body .= "Content-Disposition: attachment" . $eol;
+            $body .= $content . $eol;
+            $body .= "--" . $separator . "--";
+        }
+
+        if (!$this->hasAttachment && $this->isHtml) {
+            $this->headers .= "MIME-Version: 1.0" . $eol;
+            $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
+        }
+
+
+        $this->headers .= "X-Mailer: EasyMail-Composer-Lib" . $eol;
+        $message_id = time() . '-' . hash('sha256', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'];
+        $this->headers .= "Message-Id: $message_id";
+        $this->headers .= "X-Priority: $this->priority";
+        $this->headers .= "X-Originating-IP: " . $_SERVER['SERVER_ADDR'];
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
     }
