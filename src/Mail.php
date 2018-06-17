@@ -191,11 +191,54 @@ class Mail
     public function sendMail(): bool
     {
         $eol = "\r\n";
-        $separator = md5(time());
-        $body = wordwrap($this->msg);
+        $separator = "BOUNDARY" . md5(time()) . "";
+        $body = $this->msg;
 
         if (!($this->customHeaders)) {
-            $this->headers .= "X-Mail: EasyMail" . $eol;
+
+            $content = null;
+
+            if ($this->hasAttachment) {
+                if (!file_exists($this->attachment)) {
+                    throw new Exception("File does'nt exists");
+                }
+                $content = file_get_contents($this->attachment);
+                $content = chunk_split(base64_encode($content));
+
+
+                $filename = pathinfo($this->attachment, PATHINFO_BASENAME);
+
+                $this->headers .= "MIME-Version: 1.0" . $eol;
+                $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
+                $this->headers .= "This is a MIME encoded message." . $eol;
+
+                //for message
+                if ($this->isHtml) {
+                    $body = "--" . $separator . $eol;
+                    $body .= "Content-Type: text/html;charset=$this->encoding" . $eol;
+                    $body .= "Content-Transfer-Encoding: base64" . $eol;
+                    $body .= chunk_split(base64_encode($this->msg)) . $eol;
+
+                } else {
+                    $body = "--" . $separator . $eol;
+                    $body .= "Content-Type: text/plain;charset=$this->encoding" . $eol;
+                    $body .= "Content-Transfer-Encoding: base64" . $eol;
+                    $body .= chunk_split(base64_encode($this->msg)) . $eol;
+                }
+
+                //for attachment
+                $body .= "--" . $separator . $eol;
+                $body .= "Content-Type: application/octet-stream; name=\"" . $filename . "\"" . $eol;
+                $body .= "Content-Transfer-Encoding: base64" . $eol;
+                $body .= "Content-Disposition: attachment" . $eol;
+                $body .= $content . $eol;
+                $body .= "--" . $separator . "--";
+            }
+
+            if (!$this->hasAttachment && $this->isHtml) {
+                $this->headers .= "MIME-Version: 1.0" . $eol;
+                $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
+            }
 
             if (!empty($this->cc)) {
                 foreach ($this->cc as $email) {
@@ -217,49 +260,7 @@ class Mail
                 $this->headers .= "Reply-To: $this->reply_to" . $eol;
             }
 
-            $content = null;
-
-            if ($this->hasAttachment) {
-                if (!file_exists($this->attachment)) {
-                    throw new Exception("File does'nt exists");
-                }
-                $content = file_get_contents($this->attachment);
-                $content = chunk_split(base64_encode($content));
-
-
-                $filename = pathinfo($this->attachment, PATHINFO_BASENAME);;
-
-                $this->headers .= "MIME-Version: 1.0" . $eol;
-                $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
-                $this->headers .= "This is a MIME encoded message." . $eol;
-
-                //for message
-                if ($this->isHtml) {
-                    $body = "--" . $separator . $eol;
-                    $body .= "Content-Type: text/html;charset=$this->encoding" . $eol;
-                    $body .= "Content-Transfer-Encoding: 8bit" . $eol;
-                    $body .= $this->msg . $eol;
-
-                } else {
-                    $body = "--" . $separator . $eol;
-                    $body .= "Content-Type: text/plain;charset=$this->encoding" . $eol;
-                    $body .= "Content-Transfer-Encoding: 7bit" . $eol;
-                    $body .= $this->msg . $eol;
-                }
-
-                //for attachment
-                $body .= "--" . $separator . $eol;
-                $body .= "Content-Type: application/octet-stream; name=\"" . $filename . "\"" . $eol;
-                $body .= "Content-Transfer-Encoding: base64" . $eol;
-                $body .= "Content-Disposition: attachment" . $eol;
-                $body .= $content . $eol;
-                $body .= "--" . $separator . "--";
-            }
-
-            if (!$this->hasAttachment && $this->isHtml) {
-                $this->headers .= "MIME-Version: 1.0" . $eol;
-                $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
-            }
+            $this->headers .= "X-Mail: EasyMail" . $eol;
         }
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
