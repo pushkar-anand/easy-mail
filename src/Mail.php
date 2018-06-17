@@ -231,21 +231,19 @@ class Mail
 
                 $this->headers .= "MIME-Version: 1.0" . $eol;
                 $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
-                $this->headers .= "Content-Transfer-Encoding: 7bit" . $eol;
                 $this->headers .= "This is a MIME encoded message." . $eol;
 
                 //for message
                 if ($this->isHtml) {
                     $body = "--" . $separator . $eol;
                     $body .= "Content-Type: text/html; charset=$this->encoding" . $eol;
-                    $body .= "Content-Transfer-Encoding: 8bit" . $eol;
                     $body .= $this->msg . $eol;
 
                 } else {
                     $body = "--" . $separator . $eol;
                     $body .= "Content-Type: text/plain; charset=$this->encoding" . $eol;
-                    $body .= "Content-Transfer-Encoding: 8bit" . $eol;
-                    $body .= $this->msg . $eol;
+                    $body .= "Content-Transfer-Encoding: base64" . $eol;
+                    $body .= chunk_split(base64_encode($this->msg)) . $eol;
                 }
 
                 //for attachment
