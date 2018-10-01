@@ -11,6 +11,7 @@ Please note we have a code of conduct, please follow it in all your interactions
    build.
 2. Update the README.md with details of changes to the interface, this includes new environment 
    variables, exposed ports, useful file locations and container parameters.
+3. Test you code using phpunit run `$ ./vendor/bin/phpunit` after doing a `$ composer install`.
 
 ## Code of Conduct
 
