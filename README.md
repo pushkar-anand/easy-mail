@@ -15,7 +15,7 @@ composer require pushkar/easy-mail
 
 ## Usage
 
-```
+```php
 require_once "../../path/to/vendor/autoload.php";
 
 use EasyMail\Mail;
