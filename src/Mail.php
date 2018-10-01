@@ -272,7 +272,7 @@ class Mail
 
 
         $this->headers .= "X-Mailer: EasyMail-Composer-Lib" . $eol;
-        $message_id = time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'];
+        $message_id = "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'] . ">";
         $this->headers .= "Message-Id: $message_id" . $eol;
         $this->headers .= "X-Priority: $this->priority" . $eol;
         $this->headers .= "X-Originating-IP: " . $_SERVER['SERVER_ADDR'] . $eol;
