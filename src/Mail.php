@@ -63,6 +63,7 @@ class Mail
     }
 
     /**
+     * Set the subject of the email
      * @param string $subject
      */
     public function setSubject(string $subject)
@@ -71,7 +72,7 @@ class Mail
     }
 
     /**
-     * set whether the email is html email or not
+     * Set whether the email is html or not
      * @param bool $bool
      */
     public function isHtml(bool $bool)
@@ -80,6 +81,7 @@ class Mail
     }
 
     /**
+     * Set the message of the email
      * @param string $msg
      */
     public function setMsg(string $msg)
@@ -97,6 +99,7 @@ class Mail
     }
 
     /**
+     * Add BCC (blind carbon copy) header
      * @param string $email
      * @throws Exception
      */
@@ -112,6 +115,7 @@ class Mail
     }
 
     /**
+     * Add CC (carbon copy) header
      * @param string $email
      * @throws Exception
      */
@@ -127,6 +131,7 @@ class Mail
     }
 
     /**
+     * Set priority of email. 1 is the highest, 3 is normal, 5 is the lowest
      * @param int $priority
      */
     public function setPriority(int $priority)
@@ -135,6 +140,7 @@ class Mail
     }
 
     /**
+     * Add Reply-To header
      * @param string $email
      * @param string $name
      * @throws Exception
@@ -154,6 +160,7 @@ class Mail
     }
 
     /**
+     * Set From header
      * @param string $email
      * @param string|null $name
      * @throws Exception
@@ -172,12 +179,17 @@ class Mail
 
     }
 
+    /**
+     * Set the encoding of the email
+     * @param string $encoding
+     */
     public function setEncoding(string $encoding)
     {
         $this->encoding = $encoding;
     }
 
     /**
+     * Add file attachment to the email
      * @param string $file_full_path
      * @throws Exception
      */
@@ -192,7 +204,7 @@ class Mail
     }
 
     /**
-     *Final call to send the  mail
+     * Final call to send the  mail
      * returns true on successful call, false otherwise.
      * @return bool
      * @throws Exception
@@ -279,5 +291,4 @@ class Mail
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
     }
-
 }
