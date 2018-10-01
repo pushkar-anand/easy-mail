@@ -14,3 +14,4 @@ before_script:
     - php -v
     - composer install --no-interaction --prefer-source
     - echo "Test file" > ./tests/test.txt
+    - ls -l ./tests
