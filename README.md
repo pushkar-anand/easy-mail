@@ -10,7 +10,7 @@ A wrapper for php's mail function that allows you to easily construct and send m
 
 With composer:
 ```bash
-composer require pushkar/simple-mailer
+composer require pushkar/easy-mail
 ```
 
 ## Usage
