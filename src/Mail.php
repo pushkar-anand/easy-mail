@@ -63,6 +63,22 @@ class Mail
     }
 
     /**
+     * Sanitize the header to prevent mail injection
+     * Return a valid header.
+     * @see http://pear.php.net/reference/Mail-1.1.14/__filesource/fsource_Mail__Mail-1.1.14Mail.php.html
+     * @param string $header
+     * @return string
+     */
+    private function sanitizeHeader(string $header): string
+    {
+        return trim(preg_replace(
+            '=((<CR>|<LF>|0x0A/%0A|0x0D/%0D|\\n|\\r)\S).*=i',
+            '',
+            $header
+        ))."\r\n";
+    }
+
+    /**
      * Set the subject of the email
      * @param string $subject
      */
@@ -95,7 +111,7 @@ class Mail
      */
     public function customHeader(string $header)
     {
-        $this->headers .= $header;
+        $this->headers .= $this->sanitizeHeader($header);
     }
 
     /**
@@ -221,22 +237,22 @@ class Mail
         $separator = "BOUNDARY" . md5(time()) . "";
 
         if ($this->from != null) {
-            $this->headers .= "From: $this->from" . $eol;
+            $this->headers .= $this->sanitizeHeader("From: $this->from");
         }
 
         if ($this->reply_to != null) {
-            $this->headers .= "Reply-To: $this->reply_to" . $eol;
+            $this->headers .= $this->sanitizeHeader("Reply-To: $this->reply_to");
         }
 
         if (!empty($this->cc)) {
             foreach ($this->cc as $email) {
-                $this->headers .= "Cc: $email" . $eol;
+                $this->headers .= $this->sanitizeHeader("Cc: $email");
             }
         }
 
         if (!empty($this->bcc)) {
             foreach ($this->bcc as $email) {
-                $this->headers .= "Bcc: $email" . $eol;
+                $this->headers .= $this->sanitizeHeader("Bcc: $email");
             }
         }
 
@@ -250,9 +266,11 @@ class Mail
 
             $filename = pathinfo($this->attachment, PATHINFO_BASENAME);
 
-            $this->headers .= "MIME-Version: 1.0" . $eol;
-            $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
-            $this->headers .= "This is a MIME encoded message." . $eol;
+            $this->headers .= $this->sanitizeHeader("MIME-Version: 1.0");
+            $this->headers .= $this->sanitizeHeader(
+                "Content-Type: multipart/mixed; boundary=\"" . $separator . "\""
+            );
+            $this->headers .= $this->sanitizeHeader("This is a MIME encoded message.");
 
             //for message
             if ($this->isHtml) {
@@ -278,16 +296,18 @@ class Mail
         }
 
         if (!$this->hasAttachment && $this->isHtml) {
-            $this->headers .= "MIME-Version: 1.0" . $eol;
-            $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
+            $this->headers .= $this->sanitizeHeader("MIME-Version: 1.0");
+            $this->headers .= $this->sanitizeHeader(
+                "Content-Type: text/html;charset=$this->encoding"
+            );
         }
 
 
-        $this->headers .= "X-Mailer: EasyMail-Composer-Lib" . $eol;
+        $this->headers .= $this->sanitizeHeader("X-Mailer: EasyMail-Composer-Lib");
         $message_id = "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'] . ">";
-        $this->headers .= "Message-Id: $message_id" . $eol;
-        $this->headers .= "X-Priority: $this->priority" . $eol;
-        $this->headers .= "X-Originating-IP: " . $_SERVER['SERVER_ADDR'] . $eol;
+        $this->headers .= $this->sanitizeHeader("Message-Id: $message_id");
+        $this->headers .= $this->sanitizeHeader("X-Priority: $this->priority");
+        $this->headers .= $this->sanitizeHeader("X-Originating-IP: " . $_SERVER['SERVER_ADDR']);
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
     }

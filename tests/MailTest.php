@@ -13,14 +13,14 @@ class MailTest extends TestCase
         $_SERVER['SERVER_NAME'] = 'text.example.com';
         $_SERVER['SERVER_ADDR'] = '127.0.1.0';
 
-        $file = fopen("test.txt", "w");
+        $file = fopen(__DIR__."/test.txt", "w");
         fwrite($file, "Attachment");
         fclose($file);
     }
 
     public static function tearDownAfterClass()
     {
-        unlink("test.txt");
+        unlink(__DIR__."/test.txt");
     }
 
     public function testIsThereAnySyntaxError()
@@ -88,6 +88,21 @@ class MailTest extends TestCase
 
 
             $mail->addAttachment(__DIR__ . "/test.txt");
+            $this->assertTrue($mail->sendMail());
+
+        } catch (Exception $exception) {
+            $this->fail($exception->getMessage());
+        }
+    }
+
+    public function testBadHeaderEmail()
+    {
+        try {
+            $mail = new Mail($this->test_mail);
+            $mail->setSubject("PHP Unit test Mail Bad Header");
+            $mail->setMsg("email msg");
+            $mail->isHtml(false);
+            $mail->customHeader("Cc: test1@email.com\r\nBcc: test2@email.com");
             $this->assertTrue($mail->sendMail());
 
         } catch (Exception $exception) {
