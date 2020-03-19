@@ -15,7 +15,7 @@ composer require pushkar/easy-mail
 
 ## Usage
 
-```
+```php
 require_once "../../path/to/vendor/autoload.php";
 
 use EasyMail\Mail;
@@ -51,6 +51,7 @@ $mail->customHeaders($header);
 $mail->setFrom($email, $name);
 
 //All methods
+isValidEmail(string);
 isHtml(bool);
 setSubject(string);
 setMsg(string);
@@ -59,7 +60,9 @@ addBcc(string);
 customHeader(string);
 addReplyTo(string, string|null);
 setFrom(string, string|null);
-addAttachment(string)
+setPriority(int);
+addAttachment(string);
+setEncoding(string);
 sendMail();
 
 ```

@@ -63,6 +63,23 @@ class Mail
     }
 
     /**
+     * Sanitize the header to prevent mail injection
+     * Return a valid header.
+     * @see http://pear.php.net/reference/Mail-1.1.14/__filesource/fsource_Mail__Mail-1.1.14Mail.php.html
+     * @param string $header
+     * @return string
+     */
+    private function sanitizeHeader(string $header): string
+    {
+        return trim(preg_replace(
+            '=((<CR>|<LF>|0x0A/%0A|0x0D/%0D|\\n|\\r)\S).*=i',
+            '',
+            $header
+        ))."\r\n";
+    }
+
+    /**
+     * Set the subject of the email
      * @param string $subject
      */
     public function setSubject(string $subject)
@@ -71,7 +88,7 @@ class Mail
     }
 
     /**
-     * set whether the email is html email or not
+     * Set whether the email is html or not
      * @param bool $bool
      */
     public function isHtml(bool $bool)
@@ -80,6 +97,7 @@ class Mail
     }
 
     /**
+     * Set the message of the email
      * @param string $msg
      */
     public function setMsg(string $msg)
@@ -93,10 +111,11 @@ class Mail
      */
     public function customHeader(string $header)
     {
-        $this->headers .= $header;
+        $this->headers .= $this->sanitizeHeader($header);
     }
 
     /**
+     * Add BCC (blind carbon copy) header
      * @param string $email
      * @throws Exception
      */
@@ -112,6 +131,7 @@ class Mail
     }
 
     /**
+     * Add CC (carbon copy) header
      * @param string $email
      * @throws Exception
      */
@@ -127,6 +147,7 @@ class Mail
     }
 
     /**
+     * Set priority of email. 1 is the highest, 3 is normal, 5 is the lowest
      * @param int $priority
      */
     public function setPriority(int $priority)
@@ -135,6 +156,7 @@ class Mail
     }
 
     /**
+     * Add Reply-To header
      * @param string $email
      * @param string $name
      * @throws Exception
@@ -154,6 +176,7 @@ class Mail
     }
 
     /**
+     * Set From header
      * @param string $email
      * @param string|null $name
      * @throws Exception
@@ -172,12 +195,17 @@ class Mail
 
     }
 
+    /**
+     * Set the encoding of the email
+     * @param string $encoding
+     */
     public function setEncoding(string $encoding)
     {
         $this->encoding = $encoding;
     }
 
     /**
+     * Add file attachment to the email
      * @param string $file_full_path
      * @throws Exception
      */
@@ -192,7 +220,7 @@ class Mail
     }
 
     /**
-     *Final call to send the  mail
+     * Final call to send the  mail
      * returns true on successful call, false otherwise.
      * @return bool
      * @throws Exception
@@ -209,22 +237,22 @@ class Mail
         $separator = "BOUNDARY" . md5(time()) . "";
 
         if ($this->from != null) {
-            $this->headers .= "From: $this->from" . $eol;
+            $this->headers .= $this->sanitizeHeader("From: $this->from");
         }
 
         if ($this->reply_to != null) {
-            $this->headers .= "Reply-To: $this->reply_to" . $eol;
+            $this->headers .= $this->sanitizeHeader("Reply-To: $this->reply_to");
         }
 
         if (!empty($this->cc)) {
             foreach ($this->cc as $email) {
-                $this->headers .= "Cc: $email" . $eol;
+                $this->headers .= $this->sanitizeHeader("Cc: $email");
             }
         }
 
         if (!empty($this->bcc)) {
             foreach ($this->bcc as $email) {
-                $this->headers .= "Bcc: $email" . $eol;
+                $this->headers .= $this->sanitizeHeader("Bcc: $email");
             }
         }
 
@@ -238,9 +266,11 @@ class Mail
 
             $filename = pathinfo($this->attachment, PATHINFO_BASENAME);
 
-            $this->headers .= "MIME-Version: 1.0" . $eol;
-            $this->headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
-            $this->headers .= "This is a MIME encoded message." . $eol;
+            $this->headers .= $this->sanitizeHeader("MIME-Version: 1.0");
+            $this->headers .= $this->sanitizeHeader(
+                "Content-Type: multipart/mixed; boundary=\"" . $separator . "\""
+            );
+            $this->headers .= $this->sanitizeHeader("This is a MIME encoded message.");
 
             //for message
             if ($this->isHtml) {
@@ -266,43 +296,19 @@ class Mail
         }
 
         if (!$this->hasAttachment && $this->isHtml) {
-            $this->headers .= "MIME-Version: 1.0" . $eol;
-            $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
+            $this->headers .= $this->sanitizeHeader("MIME-Version: 1.0");
+            $this->headers .= $this->sanitizeHeader(
+                "Content-Type: text/html;charset=$this->encoding"
+            );
         }
 
-        $this->headers .= "X-Mailer: EasyMail-Composer-Lib" . $eol;
-        $this->headers .= "X-Priority: $this->priority" . $eol;
 
-        $message_id = $this->getMsgID();
-
-        if ($message_id !== null) {
-            $this->headers .= "Message-Id: $message_id" . $eol;
-        }
-
-        $this->headers .= "X-Originating-IP: " . $this->getIP() . $eol;
+        $this->headers .= $this->sanitizeHeader("X-Mailer: EasyMail-Composer-Lib");
+        $message_id = "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'] . ">";
+        $this->headers .= $this->sanitizeHeader("Message-Id: $message_id");
+        $this->headers .= $this->sanitizeHeader("X-Priority: $this->priority");
+        $this->headers .= $this->sanitizeHeader("X-Originating-IP: " . $_SERVER['SERVER_ADDR']);
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
     }
-
-    private function getMsgID()
-    {
-        if (isset($_SERVER['SERVER_NAME'])) {
-            return "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'] . ">";
-        } elseif ($this->from != null) {
-            $d = explode('@', $this->from);
-            $domain = $d[1];
-            return "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $domain . ">";
-        }
-        return null;
-    }
-
-    private function getIP()
-    {
-        if (isset($_SERVER['SERVER_ADDR'])) {
-            return $_SERVER['SERVER_ADDR'];
-        }
-        $host = gethostname();
-        return gethostbyname($host);
-    }
-
 }
