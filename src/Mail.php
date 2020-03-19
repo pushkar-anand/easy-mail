@@ -63,22 +63,6 @@ class Mail
     }
 
     /**
-     * Sanitize the header to prevent mail injection
-     * Return a valid header.
-     * @see http://pear.php.net/reference/Mail-1.1.14/__filesource/fsource_Mail__Mail-1.1.14Mail.php.html
-     * @param string $header
-     * @return string
-     */
-    private function sanitizeHeader(string $header): string
-    {
-        return trim(preg_replace(
-            '=((<CR>|<LF>|0x0A/%0A|0x0D/%0D|\\n|\\r)\S).*=i',
-            '',
-            $header
-        ))."\r\n";
-    }
-
-    /**
      * Set the subject of the email
      * @param string $subject
      */
@@ -112,6 +96,22 @@ class Mail
     public function customHeader(string $header)
     {
         $this->headers .= $this->sanitizeHeader($header);
+    }
+
+    /**
+     * Sanitize the header to prevent mail injection
+     * Return a valid header.
+     * @see http://pear.php.net/reference/Mail-1.1.14/__filesource/fsource_Mail__Mail-1.1.14Mail.php.html
+     * @param string $header
+     * @return string
+     */
+    private function sanitizeHeader(string $header): string
+    {
+        return trim(preg_replace(
+                '=((<CR>|<LF>|0x0A/%0A|0x0D/%0D|\\n|\\r)\S).*=i',
+                '',
+                $header
+            )) . "\r\n";
     }
 
     /**
