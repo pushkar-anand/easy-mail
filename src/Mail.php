@@ -270,14 +270,39 @@ class Mail
             $this->headers .= "Content-Type: text/html;charset=$this->encoding" . $eol;
         }
 
-
         $this->headers .= "X-Mailer: EasyMail-Composer-Lib" . $eol;
-        $message_id = "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'] . ">";
-        $this->headers .= "Message-Id: $message_id" . $eol;
         $this->headers .= "X-Priority: $this->priority" . $eol;
-        $this->headers .= "X-Originating-IP: " . $_SERVER['SERVER_ADDR'] . $eol;
+
+        $message_id = $this->getMsgID();
+
+        if ($message_id !== null) {
+            $this->headers .= "Message-Id: $message_id" . $eol;
+        }
+
+        $this->headers .= "X-Originating-IP: " . $this->getIP() . $eol;
 
         return mail($this->send_to, $this->subject, $body, $this->headers);
+    }
+
+    private function getMsgID()
+    {
+        if (isset($_SERVER['SERVER_NAME'])) {
+            return "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $_SERVER['SERVER_NAME'] . ">";
+        } elseif ($this->from != null) {
+            $d = explode('@', $this->from);
+            $domain = $d[1];
+            return "<" . time() . '-' . hash('sha1', $this->from . $this->send_to) . '@' . $domain . ">";
+        }
+        return null;
+    }
+
+    private function getIP()
+    {
+        if (isset($_SERVER['SERVER_ADDR'])) {
+            return $_SERVER['SERVER_ADDR'];
+        }
+        $host = gethostname();
+        return gethostbyname($host);
     }
 
 }
