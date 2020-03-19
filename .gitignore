@@ -1,9 +1,6 @@
 # Dependencies
 /vendor
 
-# Generated files
-composer.lock
-
 #IDE Files
 .idea/
 
